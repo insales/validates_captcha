@@ -1,4 +1,5 @@
 require 'action_view/helpers'
+require 'action_view/helpers/asset_tag_helper'
 
 module ValidatesCaptcha
   # Here is how you can implement your own captcha challenge provider. Create a
@@ -77,6 +78,8 @@ module ValidatesCaptcha
     # ValidatesCaptcha::ImageGenerator::Simple on how to create your own.
     class DynamicImage
       include ActionView::Helpers
+      include Sprockets::Helpers::RailsHelper
+      include Sprockets::Helpers::IsolatedHelper
 
       @@string_generator = nil
       @@symmetric_encryptor = nil
@@ -192,9 +195,13 @@ module ValidatesCaptcha
       # providing a +:text+ key in the +options+ hash.
       def render_regenerate_challenge_link(sanitized_object_name, object, options = {}, html_options = {})
         text = options.delete(:text) || 'Regenerate Captcha'
-        success = "var result = request.responseJSON; $('#{sanitized_object_name}_captcha_image').src = result.captcha_image_path; $('#{sanitized_object_name}_captcha_challenge').value = result.captcha_challenge; $('#{sanitized_object_name}_captcha_solution').value = '';"
-
-        link_to_remote text, options.reverse_merge(:url => regenerate_path, :method => :get, :success => success), html_options
+        if options.delete(:jquery)
+          onclick = "var timestamp = new Date().getTime(); jQuery.getJSON('#{regenerate_path}?' + timestamp, function(result){jQuery('##{sanitized_object_name}_captcha_image').attr('src',result.captcha_image_path); jQuery('##{sanitized_object_name}_captcha_challenge').val(result.captcha_challenge); jQuery('##{sanitized_object_name}_captcha_solution').val('');});return false;"
+          link_to text, "#", options.reverse_merge(:onclick => onclick), html_options
+        else
+          success = "var result = request.responseJSON; $('#{sanitized_object_name}_captcha_image').src = result.captcha_image_path; $('#{sanitized_object_name}_captcha_challenge').value = result.captcha_challenge; $('#{sanitized_object_name}_captcha_solution').value = '';"
+          link_to_remote text, options.reverse_merge(:url => regenerate_path, :method => :get, :success => success), html_options
+        end
       end
 
       private

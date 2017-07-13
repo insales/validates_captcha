@@ -29,6 +29,9 @@ module ValidatesCaptcha
         result = yield
         self.validate_captcha = false
         result
+      rescue Exception => e
+        self.validate_captcha = false
+        raise e
       end
 
       # Returns +true+ if captcha validation is activated, otherwise +false+.
@@ -48,9 +51,8 @@ module ValidatesCaptcha
         @captcha_challenge = ValidatesCaptcha.provider.generate_challenge
       end
 
-      def attributes_with_captcha_fields=(new_attributes, guard_protected_attributes = true)
-        if new_attributes && guard_protected_attributes &&
-            (new_attributes.key?('captcha_challenge') || new_attributes.key?(:captcha_challenge))
+      def attributes_with_captcha_fields=(new_attributes)
+        if new_attributes && (new_attributes.key?('captcha_challenge') || new_attributes.key?(:captcha_challenge))
           attributes = new_attributes.dup
           attributes.stringify_keys!
 
@@ -60,7 +62,7 @@ module ValidatesCaptcha
           new_attributes = attributes
         end
 
-        send :attributes_without_captcha_fields=, new_attributes, guard_protected_attributes
+        send :attributes_without_captcha_fields=, new_attributes
       end
 
       private
@@ -70,7 +72,10 @@ module ValidatesCaptcha
 
         def validate_captcha #:nodoc:
           errors.add(:captcha_solution, :blank) and return if captcha_solution.blank?
-          errors.add(:captcha_solution, :invalid) unless captcha_valid?
+          unless captcha_valid?
+            @captcha_challenge = nil # thus captcha_challenge will be regenerated
+            errors.add(:captcha_solution, :invalid)
+          end
         end
 
         def captcha_valid? #:nodoc:

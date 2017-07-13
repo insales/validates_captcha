@@ -19,7 +19,7 @@ module ValidatesCaptcha
     def captcha_field(object_name, options = {})
       options.delete(:id)
 
-      hidden_field(object_name, :captcha_challenge, options) + text_field(object_name, :captcha_solution, options)
+      hidden_field(object_name, :captcha_challenge, options.except(:class)) + text_field(object_name, :captcha_solution, options)
     end
 
     # By default, returns an anchor tag that makes an AJAX request to fetch a new captcha challenge and updates

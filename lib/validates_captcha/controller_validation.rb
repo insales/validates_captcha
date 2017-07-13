@@ -47,9 +47,8 @@ module ValidatesCaptcha
       def validates_captcha_of(model, conditions = {})
         model = model.is_a?(Class) ? model : model.to_s.classify.constantize
         without_formats = Array.wrap(conditions.delete(:without)).map(&:to_sym)
-
         around_filter(conditions) do |controller, action|
-          if without_formats.include?(controller.request.format.to_sym)
+          if without_formats.include?(controller.request.format.try :to_sym) || !controller.send(:should_validate_captcha?)
             action.call
           else
             model.with_captcha_validation do

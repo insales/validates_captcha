@@ -56,18 +56,20 @@ module ValidatesCaptcha
       # Returns a string containing the image bytes of the captcha.
       # As the only argument, the cleartext captcha text must be passed.
       def generate(captcha_code)
-        image_width = captcha_code.length * 20 + 10
+        image_width = captcha_code.length * 20
 
         cmd = []
         cmd << "convert -size #{image_width}x40 xc:grey84 -background grey84 -fill black "
 
         captcha_code.split(//).each_with_index do |char, i|
-          cmd << " -pointsize #{rand(8) + 15} "
+          cmd << " -pointsize #{rand(8) + 24} "
           cmd << " -weight #{rand(2) == 0 ? '4' : '8'}00 "
-          cmd << " -draw 'text #{5 + 20 * i},#{rand(10) + 20} \"#{char}\"' "
+          cmd << " -draw 'text #{5 + 12 * i},#{rand(10) + 25} \"#{char}\"' "
         end
 
         cmd << "  -rotate #{rand(2) == 0 ? '-' : ''}5 -fill grey40 "
+
+        cmd << " -swirl 40 "
 
         captcha_code.size.times do
           cmd << "  -draw 'line #{rand(image_width)},0 #{rand(image_width)},60' "
