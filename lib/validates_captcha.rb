@@ -27,8 +27,11 @@
 # information on how to bring Validates Captcha to use your own
 # implementation instead of the default one, consult the documentation
 # for the default provider.
+require 'validates_captcha/railtie' if defined?(Rails)
+
 module ValidatesCaptcha
   autoload :ModelValidation, 'validates_captcha/model_validation'
+  autoload :MiddlewareWrapper, 'validates_captcha/middleware_wrapper'
   autoload :ControllerValidation, 'validates_captcha/controller_validation'
   autoload :FormHelper, 'validates_captcha/form_helper'
   autoload :FormBuilder, 'validates_captcha/form_builder'
